@@ -25,7 +25,6 @@ public class Verification{
 
 
 	public static boolean verifyCredentials(String username, String password) {
-		//test push
 	    String localDir = System.getProperty("user.dir");
 	    File userDatas = new File(localDir + "/Server/src/dataBase.txt");
 	    
