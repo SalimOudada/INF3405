@@ -40,7 +40,6 @@ public class Serveur {
             }
         } finally {
             Listener.close();
-            // test de push
 
         }
     }
