@@ -1,4 +1,6 @@
 import java.util.regex.Matcher;
+import java.net.Socket;
+import java.net.ServerSocket;
 import java.util.regex.Pattern;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -8,13 +10,18 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 
-public class Verification{
+public class VerificationServer{
 
     public static boolean verifyIP(String ip) {
     // Expression régulière pour vérifier une adresse IP valide
     String format = "^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$";
+    
+    if (ip.matches(format) == false) {
+        throw new IllegalArgumentException("pas un port valide");}
     return ip.matches(format);
-    }
+
+    };
+    
 
 	    public static void verifyPort(int port){
 	        if (port>=5050 || port<5000){
