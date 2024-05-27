@@ -32,14 +32,38 @@ public class Client {
             System.out.println("Port invalide : " + e.getMessage());
             return;
         }
-
+        
+      
         try (Socket socket = new Socket(ipAddress, port);
              BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
              BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()))) {
-             
-            System.out.println("Connecté au serveur " + ipAddress + " sur le port " + port);
-           
-
+             System.out.println("Connecté au serveur " + ipAddress + " sur le port " + port);
+            
+            while(true) {
+            	System.out.println("Nom d'utilisateur: ");
+	            String username = scanner.nextLine();
+	            
+	            System.out.println("Mot de passe: ");
+	            String password = scanner.nextLine();
+	            
+	            bufferedWriter.write(username+"\n"+password+"\n");
+	            bufferedWriter.flush();
+	            
+	            String verifyCredentials = bufferedReader.readLine();
+	        
+	            if(verifyCredentials.equals("true")){
+	            	System.out.println("Connexion acceptée !");
+	            	bufferedWriter.write("verification done\n");
+	            	bufferedWriter.flush();
+	            	break;
+	            }
+	            else if (verifyCredentials.equals("false")) {
+	            	System.out.println("Erreur dans la saisie du mot de passe.");
+	            	bufferedWriter.write("verification not done\n");
+	            	bufferedWriter.flush();
+	            }
+	        }
+            
             // Code pour envoyer l'image ici
 
         } catch (IOException e) {
@@ -48,5 +72,8 @@ public class Client {
 		finally {
 			scanner.close();
 		}
+
+        
+        
     }
 }

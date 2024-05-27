@@ -15,7 +15,7 @@ public class Serveur {
         System.out.println("Entrez l'adresse IP du serveur : ");
         String ipAdress = userInput.nextLine();
         try {
-        	VerificationServer.verifyIP(ipAdress);
+        	Verification.verifyIP(ipAdress);
         } catch (IllegalArgumentException e) {
             System.out.println("Adresse IP invalide  ");
             return;
@@ -24,7 +24,7 @@ public class Serveur {
         System.out.println("Entrez le port d'écoute : ");
         int port = userInput.nextInt();
         try {
-        	VerificationServer.verifyPort(port);
+        	Verification.verifyPort(port);
         } catch (IllegalArgumentException e) {
             System.out.println("Port invalide : " + e.getMessage());
             return;
