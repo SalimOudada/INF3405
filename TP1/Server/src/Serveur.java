@@ -7,36 +7,41 @@ public class Serveur {
     private static ServerSocket Listener;
 
     public static void main(String[] args) throws Exception {
-        System.out.println("serveur");
+        System.out.println("Serveur");
         int clientNumber = 0;
 
-        // Demande l'adresse et le port à l'utilisateur + les vérifie
         Scanner userInput = new Scanner(System.in);
-        System.out.println("Entrez l'adresse IP du serveur : ");
-        String ipAdress = userInput.nextLine();
-        try {
-        	Verification.verifyIP(ipAdress);
-        } catch (IllegalArgumentException e) {
-            System.out.println("Adresse IP invalide  ");
-            return;
+        String ipAddress = "";
+        int port = 0;
+
+        while (true) {
+            System.out.println("Entrez l'adresse IP du serveur : ");
+            ipAddress = userInput.nextLine();
+
+            try {
+                Verification.verifyIP(ipAddress);
+                break;
+            } catch (IllegalArgumentException e) {
+                System.out.println("Adresse IP invalide. Veuillez réessayer.");
+            }
         }
 
-        System.out.println("Entrez le port d'écoute : ");
-        int port = userInput.nextInt();
-        try {
-        	Verification.verifyPort(port);
-        } catch (IllegalArgumentException e) {
-            System.out.println("Port invalide : " + e.getMessage());
-            return;
+        while (true) {
+            System.out.println("Entrez le port d'écoute (entre 5000 et 5050) : ");
+            port = userInput.nextInt();
+            userInput.nextLine();
+
+            try {
+                Verification.verifyPort(port);
+                break;
+            } catch (IllegalArgumentException e) {
+                System.out.println("Port invalide : " + e.getMessage() + ". Veuillez réessayer.");
+            }
         }
 
         Listener = new ServerSocket();
-        // Permet de réutiliser le port
         Listener.setReuseAddress(true);
-        // Permet d'obtenir l'adresse IP du serveur
-        InetAddress serverIP = InetAddress.getByName(ipAdress);
-
-        // On bind le serveur
+        InetAddress serverIP = InetAddress.getByName(ipAddress);
         Listener.bind(new InetSocketAddress(serverIP, port));
         System.out.println("Le serveur est à l'écoute sur le port " + port + " et l'adresse IP " + serverIP);
         userInput.close();
