@@ -1,98 +1,145 @@
 import java.net.Socket;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.BufferedWriter;
+import java.io.OutputStreamWriter;
 import java.util.Scanner;
 import java.io.File;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.FileInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.PrintWriter;
 
 public class Client {
+    private static Socket socket;
+
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        String ipAddress = "";
-        int port = 0;
+        String adresseServeur = "";
+        int portServeur = 0;
 
         while (true) {
             System.out.println("Entrez l'adresse IP du serveur : ");
-            ipAddress = scanner.nextLine();
+            adresseServeur = scanner.nextLine();
 
             try {
-                Verification.verifyIP(ipAddress);
-                break; 
+            	Verification.verifyIP(adresseServeur);
+                break;
             } catch (IllegalArgumentException e) {
                 System.out.println("Adresse IP invalide. Veuillez réessayer.");
             }
         }
 
-    
         while (true) {
             System.out.println("Entrez le port du serveur (entre 5000 et 5050) : ");
-            port = scanner.nextInt();
-            scanner.nextLine(); 
+            portServeur = scanner.nextInt();
+            scanner.nextLine();
 
             try {
-                Verification.verifyPort(port);
-                break; 
+                Verification.verifyPort(portServeur);
+                break;
             } catch (IllegalArgumentException e) {
                 System.out.println("Port invalide : " + e.getMessage() + ". Veuillez réessayer.");
             }
         }
 
-        try (Socket socket = new Socket(ipAddress, port);
-             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-             BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()))) {
-            System.out.println("Connecté au serveur " + ipAddress + " sur le port " + port);
+        try {
+            socket = new Socket(adresseServeur, portServeur);
+            BufferedReader lecteur = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            BufferedWriter ecrivain = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+
+            System.out.println("Connecté au serveur " + adresseServeur + " sur le port " + portServeur);
 
             while (true) {
-                System.out.println("Nom d'utilisateur: ");
-                String username = scanner.nextLine();
+                System.out.println("Nom d'utilisateur : ");
+                String nomUtilisateur = scanner.nextLine();
 
-                System.out.println("Mot de passe: ");
-                String password = scanner.nextLine();
+                System.out.println("Mot de passe : ");
+                String motDePasse = scanner.nextLine();
 
-                bufferedWriter.write(username + "\n" + password + "\n");
-                bufferedWriter.flush();
+                ecrivain.write(nomUtilisateur + "\n" + motDePasse + "\n");
+                ecrivain.flush();
 
-                String verifyCredentials = bufferedReader.readLine();
+                String verificationCredentials = lecteur.readLine();
 
-                if (verifyCredentials.equals("true")) {
+                if (verificationCredentials.equals("true")) {
                     System.out.println("Connexion acceptée !");
-                    bufferedWriter.write("verification done\n");
-                    bufferedWriter.flush();
+                    ecrivain.write("verification done\n");
+                    ecrivain.flush();
                     break;
-                } else if (verifyCredentials.equals("false")) {
+                } else if (verificationCredentials.equals("false")) {
                     System.out.println("Erreur dans la saisie du mot de passe.");
-                    bufferedWriter.write("verification not done\n");
-                    bufferedWriter.flush();
+                    ecrivain.write("verification not done\n");
+                    ecrivain.flush();
                 }
             }
-            // demande au client d'entrer le nom de l'image qui se retriuve dans le repertoire
-            System.out.println("Entrez le nom de l'image : ");
-            String imageName = scanner.nextLine();
 
+            String cheminImage = "";
+            while (true) {
+                System.out.println("Entrez le chemin de l'image à traiter : ");
+                cheminImage = scanner.nextLine();
+                if (estCheminImageValide(cheminImage)) {
+                    break;
+                } else {
+                    System.out.println("Chemin d'image invalide. Veuillez réessayer.");
+                }
+            }
 
-            
-            // Code pour envoyer l'image ici
+            // Envoyer l'image au serveur
+            envoyerImage(cheminImage, socket.getOutputStream());
 
-            // mettre le code d'envoi de l'image avec ce print
-            System.out.println("Image envoyée pour traitement.");
-            
-            
-            // mettre le code pour recevoir l'image traitée ici et mettre le path de l'image traitée dans processedImageName
-            // je commente le code pour le moment, decommenter le print apres avoir mis le code
-            //System.out.println("Image traitée reçue et sauvegardée dans : " + processedImageName);
-
+            // Recevoir l'image traitée du serveur et l'enregistrer sur disque
+            recevoirEtSauvegarderImagesTraitees(socket.getInputStream());
+            System.out.println("Test.");
 
         } catch (IOException e) {
             System.out.println("Erreur lors de la communication avec le serveur : " + e.getMessage());
+        } finally {
+            try {
+                socket.close();
+                scanner.close();
+            } catch (IOException e) {
+                System.out.println("Erreur lors de la fermeture du socket : " + e.getMessage());
+            }
         }
-		finally {
-			scanner.close();
-		}
-
-        
-        
     }
+
+    private static void envoyerImage(String cheminImage, OutputStream outputStream) throws IOException {
+        File fichierImage = new File(cheminImage);
+        FileInputStream fis = new FileInputStream(fichierImage);
+        byte[] donneesImage = new byte[(int) fichierImage.length()];
+        fis.read(donneesImage);
+        fis.close();
+
+        // Envoyer l'image par le socket
+        outputStream.write(donneesImage);
+        outputStream.flush();
+        socket.shutdownOutput();
+    }
+
+    private static void recevoirEtSauvegarderImagesTraitees(InputStream inputStream) throws IOException {
+        BufferedImage imageTraitee = ImageIO.read(inputStream);
+        File fichierImageSortie = new File("image_traitee.jpg");
+        ImageIO.write(imageTraitee, "JPG", fichierImageSortie);
+        System.out.println("Image traitée reçue et sauvegardée dans : " + fichierImageSortie.getAbsolutePath());
+    }
+
+    private static boolean estCheminImageValide(String cheminImage) {
+        File fichier = new File(cheminImage);
+        if (!fichier.exists()) {
+            return false;
+        }
+        try {
+            BufferedImage image = ImageIO.read(fichier);
+            return image != null;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
 }
