@@ -2,6 +2,8 @@ import java.io.*;
 import java.net.Socket;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class ServerThread extends Thread {
     private static final int BUFFER_SIZE = 4096;
@@ -19,8 +21,9 @@ public class ServerThread extends Thread {
              BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()))) {
 
             // Authentification de l'utilisateur
+            String username = "";
             while (true) {
-                String username = bufferedReader.readLine();
+                username = bufferedReader.readLine();
                 String password = bufferedReader.readLine();
 
                 Boolean isAccepted = Verification.verifyCredentials(username, password);
@@ -38,10 +41,13 @@ public class ServerThread extends Thread {
                 }
             }
 
+            // Lire le nom de l'image traitée souhaité
+            String nomImageTraitee = bufferedReader.readLine();
+            
             // Réception de l'image du client
             InputStream is = socket.getInputStream();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[BUFFER_SIZE];
             int bytesRead;
             while ((bytesRead = is.read(buffer)) != -1) {
                 baos.write(buffer, 0, bytesRead);
@@ -50,13 +56,20 @@ public class ServerThread extends Thread {
 
             // Sauvegarde de l'image reçue sur le disque
             byte[] imageData = baos.toByteArray();
-            try (FileOutputStream fos = new FileOutputStream("received_image.jpg")) {
+            String receivedImageName = "received_image.jpg";
+            try (FileOutputStream fos = new FileOutputStream(receivedImageName)) {
                 fos.write(imageData);
             }
 
+            // Affichage des informations de réception de l'image en console
+            String clientAddress = socket.getInetAddress().getHostAddress();
+            int clientPort = socket.getPort();
+            String timestamp = new SimpleDateFormat("yyyy-MM-dd@HH:mm:ss").format(new Date());
+            System.out.println("[" + username + " - " + clientAddress + ":" + clientPort + " - " + timestamp + "] : Image " + receivedImageName + " reçue pour traitement.");
+
             // Traitement de l'image
-            BufferedImage image = ImageIO.read(new File("received_image.jpg"));
-            File outputFile = new File("image_traite.jpg");
+            BufferedImage image = ImageIO.read(new File(receivedImageName));
+            File outputFile = new File(nomImageTraitee);
             ImageIO.write(Sobel.process(image), "jpg", outputFile);
 
             // Envoi de l'image traitée au client

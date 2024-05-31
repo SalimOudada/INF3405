@@ -87,11 +87,19 @@ public class Client {
                 }
             }
 
+            // Prompt for the processed image name
+            System.out.println("Entrez le nom de l'image traitée (sans extension) : ");
+            String nomImageTraitee = scanner.nextLine() + ".jpg";
+
+            // Send the desired name for the processed image to the server
+            ecrivain.write(nomImageTraitee + "\n");
+            ecrivain.flush();
+
             // Envoi de l'image au serveur
             envoyerImage(cheminImage, socket.getOutputStream());
 
             // Réception de l'image traitée du serveur et enregistrement sur disque
-            recevoirEtSauvegarderImagesTraitees(socket.getInputStream());
+            recevoirEtSauvegarderImagesTraitees(socket.getInputStream(), nomImageTraitee);
 
         } catch (IOException e) {
             System.out.println("Erreur lors de la communication avec le serveur : " + e.getMessage());
@@ -118,9 +126,9 @@ public class Client {
         socket.shutdownOutput();
     }
 
-    private static void recevoirEtSauvegarderImagesTraitees(InputStream inputStream) throws IOException {
+    private static void recevoirEtSauvegarderImagesTraitees(InputStream inputStream, String nomImageTraitee) throws IOException {
         BufferedImage imageTraitee = ImageIO.read(inputStream);
-        File fichierImageSortie = new File("image_traitee.jpg");
+        File fichierImageSortie = new File(nomImageTraitee);
         ImageIO.write(imageTraitee, "JPG", fichierImageSortie);
         System.out.println("Image traitée reçue et sauvegardée dans : " + fichierImageSortie.getAbsolutePath());
     }
