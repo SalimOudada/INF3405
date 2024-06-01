@@ -87,11 +87,11 @@ public class Client {
                 }
             }
 
-            // Prompt for the processed image name
+            // Demander le nom de l'image traitée
             System.out.println("Entrez le nom de l'image traitée (sans extension) : ");
             String nomImageTraitee = scanner.nextLine() + ".jpg";
 
-            // Send the desired name for the processed image to the server
+            // Envoyer le nom souhaité pour l'image traitée au serveur
             ecrivain.write(nomImageTraitee + "\n");
             ecrivain.flush();
 

@@ -41,7 +41,7 @@ public class ServerThread extends Thread {
                 }
             }
 
-            // Lire le nom de l'image traitée souhaité
+            // Réception du nom de l'image traitée
             String nomImageTraitee = bufferedReader.readLine();
             
             // Réception de l'image du client
@@ -60,13 +60,20 @@ public class ServerThread extends Thread {
             try (FileOutputStream fos = new FileOutputStream(receivedImageName)) {
                 fos.write(imageData);
             }
+            
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd@HH:mm:ss");
+            String dateTime = dateFormat.format(new Date());
+            System.out.println("[" + socket.getInetAddress().getHostAddress() + ":" + socket.getPort() 
+                                  + " - " + dateTime + "] : Image " + nomImageTraitee + " reçue pour traitement.");
 
             // Affichage des informations de réception de l'image en console
             String clientAddress = socket.getInetAddress().getHostAddress();
             int clientPort = socket.getPort();
             String timestamp = new SimpleDateFormat("yyyy-MM-dd@HH:mm:ss").format(new Date());
-            System.out.println("[" + username + " - " + clientAddress + ":" + clientPort + " - " + timestamp + "] : Image " + receivedImageName + " reçue pour traitement.");
+            System.out.println("[" + username + " - " + clientAddress + ":" + clientPort + " - " + timestamp + "] "
+            		+ "           : Image " + receivedImageName + " reçue pour traitement.");
 
+       
             // Traitement de l'image
             BufferedImage image = ImageIO.read(new File(receivedImageName));
             File outputFile = new File(nomImageTraitee);
