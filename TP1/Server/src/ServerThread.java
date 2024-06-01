@@ -56,8 +56,7 @@ public class ServerThread extends Thread {
 
             // Sauvegarde de l'image reçue sur le disque
             byte[] imageData = baos.toByteArray();
-            String receivedImageName = "received_image.jpg";
-            try (FileOutputStream fos = new FileOutputStream(receivedImageName)) {
+            try (FileOutputStream fos = new FileOutputStream(nomImageTraitee)) {
                 fos.write(imageData);
             }
             
